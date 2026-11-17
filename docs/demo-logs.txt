@@ -1,0 +1,15 @@
+Logs da aplicacao durante a demo (linhas do ConteudoCache):
+
+2026-11-17T01:04:25.378 - Cache MISS - id=1 - 2097 ms
+2026-11-17T01:04:25.495 - Cache HIT  - id=1 - 0 ms
+2026-11-17T01:04:27.596 - Cache MISS - id=2 - 2009 ms
+2026-11-17T01:04:29.667 - Cache MISS - id=3 - 2006 ms
+2026-11-17T01:04:31.757 - Cache MISS - id=4 - 2011 ms
+2026-11-17T01:04:33.954 - Cache MISS - id=5 - 2013 ms
+2026-11-17T01:04:34.217 - Cache HIT  - id=1 - 0 ms
+2026-11-17T01:04:36.297 - Cache MISS - id=6 - 2009 ms   (evictou id=2 - LRU)
+2026-11-17T01:04:38.547 - Cache MISS - id=7 - 2012 ms   (evictou id=3 - LRU)
+2026-11-17T01:04:40.649 - Cache MISS - id=2 - 2010 ms   (id=2 tinha sido evictado)
+2026-11-17T01:04:42.732 - Cache MISS - id=4 - 2012 ms
+2026-11-17T01:05:00.885 - Cache MISS - id=4 - 2027 ms   (apos TTL de 15s -> expirou)
+2026-11-17T01:05:03.182 - Cache MISS - id=5 - 2014 ms   (apos PUT -> invalidado)

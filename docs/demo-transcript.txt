@@ -1,0 +1,53 @@
+===== 0. Limpando cache e banco de testes =====
+DELETE /cache -> 204
+
+===== 1. Cadastrando 7 conteudos =====
+{"id":1,"titulo":"Artigo 1","corpo":"Corpo do artigo 1","autor":"Autor 1","atualizadoEm":"2026-11-17T01:04:22.8417559"}  -> HTTP 201
+{"id":2,"titulo":"Artigo 2","corpo":"Corpo do artigo 2","autor":"Autor 2","atualizadoEm":"2026-11-17T01:04:22.9865884"}  -> HTTP 201
+{"id":3,"titulo":"Artigo 3","corpo":"Corpo do artigo 3","autor":"Autor 3","atualizadoEm":"2026-11-17T01:04:23.0360917"}  -> HTTP 201
+{"id":4,"titulo":"Artigo 4","corpo":"Corpo do artigo 4","autor":"Autor 4","atualizadoEm":"2026-11-17T01:04:23.0839158"}  -> HTTP 201
+{"id":5,"titulo":"Artigo 5","corpo":"Corpo do artigo 5","autor":"Autor 5","atualizadoEm":"2026-11-17T01:04:23.1313953"}  -> HTTP 201
+{"id":6,"titulo":"Artigo 6","corpo":"Corpo do artigo 6","autor":"Autor 6","atualizadoEm":"2026-11-17T01:04:23.1780917"}  -> HTTP 201
+{"id":7,"titulo":"Artigo 7","corpo":"Corpo do artigo 7","autor":"Autor 7","atualizadoEm":"2026-11-17T01:04:23.2245714"}  -> HTTP 201
+
+===== 2. MISS depois HIT (mesmo id=1) =====
+X-Cache: MISS
+tempo total: 2.107566s
+X-Cache: HIT
+tempo total: 0.006981s
+
+===== 3. Enchendo o cache (ids 2 a 5) - agora tem 5 itens =====
+GET /conteudos/2 -> 200 em 2.015318s
+GET /conteudos/3 -> 200 em 2.011509s
+GET /conteudos/4 -> 200 em 2.016184s
+GET /conteudos/5 -> 200 em 2.018958s
+
+===== 4. Acessando id=1 de novo (HIT - renova o acesso dele) =====
+GET /conteudos/1 -> 200 em 0.008305s
+
+===== 5. Cache cheio: GET id=6 deve remover o LRU (id=2) =====
+X-Cache: MISS
+tempo total: 2.030092s
+{"tamanhoAtual":5,"limite":5,"hits":2,"misses":6,"evictions":1,"hitRatio":0.25}
+
+===== 6. GET id=7 remove o proximo LRU (id=3) =====
+GET /conteudos/7 -> 200 em 2.018305s
+{"tamanhoAtual":5,"limite":5,"hits":2,"misses":7,"evictions":2,"hitRatio":0.2222222222222222}
+
+===== 7. Prova da remocao: GET id=2 de novo (foi evictado -> MISS) =====
+X-Cache: MISS
+tempo total: 2.015193s
+
+===== 8. TTL: GET id=4, esperar expirar, GET de novo =====
+GET /conteudos/4 -> 200
+aguardando expiracao do TTL...
+X-Cache: MISS
+tempo total: 2.056990s
+
+===== 9. Invalidacao: PUT em id=5 e GET depois =====
+PUT /conteudos/5 -> 200
+X-Cache: MISS
+tempo total: 2.022022s
+
+===== 10. Estatisticas finais =====
+{"tamanhoAtual":5,"limite":5,"hits":2,"misses":11,"evictions":5,"hitRatio":0.15384615384615385}
